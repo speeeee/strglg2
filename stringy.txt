@@ -1,0 +1,84 @@
+
+    Binary strings
+    Brace expansion - {It{{em,alic}iz,erat}e{d, }}
+      (prec [{~x}] -> prec [~y,] x -> nprconcat y):"{It{{em,alic}iz,erat}e{d, }}"
+   or (nprconcat (prec [~,]) (prec [{~}])):"{It{{em,alic}iz,erat}e{d, }}"
+    Caesar cipher (Rot-n) 
+      ~ easy
+      (if:Ψ:(btw:"a" "m") (+:13) ((btw:"n" "z") => (-:13) ; ident))
+    Character codes
+      The statement, `Char -> Int`, holds, so characters are also their code, but not 
+      necessarily vice-versa.
+    Copy a string
+      x -> "a"
+      y -> x
+    Count occurrences of a substring
+      count-thru:= "abc" "bcabcabcbcabc"
+    Determine if a string is numeric
+      Int
+    Empty string
+      ""
+    File extension is in extensions list
+      extmatch = ⊆ pfind:[.~]
+    Find common directory path
+      find-commons:map splt:"/\"
+    Generate lower case ASCII alphabet
+      "a" .. "z"
+   or ..:"a" "z"
+    Multisplit
+      (all-permutations sep:"=" "!=" "=="):"a!===b=!=c"
+    N'th
+      index:"abc" 1
+    Palindrome detection
+      (= reverse:):"ABBA"
+    Pangram checker
+      (all:(..:"a" "z"))
+    Repeat a string
+      mul
+    Reverse a string
+      reverse
+    Reverse the gender of a string
+      Longer definition due to required dictionary
+    Roman numerals/Encode
+      
+    String append
+      "abc" "def" ~ Because they're just character lists, adjacent strings are
+                  ~ automatically concatenated.
+      x -> "a"
+      "abb" x "!"
+    String case
+      (ucase lcase)
+    String concatenation
+      see "String append"
+    String interpolation (included)
+      ~ map:(_ ".") ~ `_` forces insertion
+      thru:"little" "X" "mary had a X lamb"
+    String length 
+      len
+    String matching
+      find-index
+    String prepend
+      see "String append"
+    Strip a set of characters from a string
+      ((x) -> foldl:if:Ψ:(any:x) "" ident)
+    Strip block comments
+      rem:[{-~-}]
+    Strip comments from a string
+      rem:[--~\n]
+    Strip control codes and extended characters from a string
+      map:if:Ψ:(btw:32 126) ident ""
+    Strip whitespace from a string/Top and tail
+      no-padding
+    Substring
+      substr
+    Substring/Top and tail
+      cdr
+      pop
+      cdr pop
+    Tokenize a string
+      (map_:(prn:_ ".") splt:",")
+    Tokenize a string with escaping
+    URL decoding
+    URL encoding
+    URL parser
+    Vigenère cipher
