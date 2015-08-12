@@ -10,6 +10,7 @@
 ; these functions cannot be partially applied at top-level.
 (struct exp (h t) #:transparent) ; LISP-style s-expression. (lambda . args-list)
 (struct v (val type) #:transparent)
+(define (sym? s) (and (v? s) (equal? (v? s) "Sym")))
 
 (define (push stk elt) (append stk (list elt)))
 (define (pop stk) (car (reverse stk)))
@@ -17,6 +18,9 @@
 (define (strcar str) (car (string->list str)))
 
 (define funs (list (fn "+" 2)))
+
+; ac-expr is the expression that is used on every element of `lst' but preserves the original `lst'.
+(define (find-eq a ac-expr lst) (findf (λ (x) (equal? a (ac-expr x))) lst))
 
 #;(define (string-split-spec str) (map list->string (filter (λ (x) (not (empty? x))) (splt (string->list str) '(())))))
 (define (splt str n) (let ([q (if (empty? str) #f (member (car str) (list #\( #\) #\{ #\} #\[ #\] #\:)))])
@@ -46,3 +50,11 @@
         [else (cp (cdr stk) (push n (car stk)))]))
 (define (rem-plist a) (if (equal? (v-type a) "PList") (map rem-plist (v-val a))
                           (if (equal? (v-type a) "List") (v (map rem-plist (v-val a)) "List") a)))
+
+(define (lex s)
+  (cond [(member s (list "(" ")" "{" "}" "[" "]" ":")) s]
+        [(member s (map fn-name funs)) (find-eq s car funs)] [else (v s "List")]))
+
+
+
+(define (parse str) (map lex (check-parens (string-split-spec str))))
