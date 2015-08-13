@@ -40,7 +40,7 @@
         [(equal? s #\") (list 'str n)] [(member s (list #\( #\) #\{ #\} #\[ #\] #\:)) (append n (list (list s)) (list '()))]
         [(equal? s #\space) (push n '())] [else (push (ret-pop n) (push (pop n) s))]))) '(()) (string->list str))))
 
-(define (check-parens stk) (map rem-plist (cp stk '())))
+#;(define (check-parens stk) (map rem-plist (cp stk '())))
 (define (cp stk n)
   (cond [(empty? stk) n]
         [(equal? (v-type (car stk)) "$close") (let* ([c (case (v-val (car stk)) [("}") "{"] [("]") "["] [(")") "("] [else '()])]
@@ -51,10 +51,17 @@
 (define (rem-plist a) (if (equal? (v-type a) "PList") (map rem-plist (v-val a))
                           (if (equal? (v-type a) "List") (v (map rem-plist (v-val a)) "List") a)))
 
+(define (check-parens lst) (foldl (λ (elt n)
+  (if (or (empty? n) (not (equal? elt ")"))) (push n elt)
+      (let* ([c (case elt [("}") "{"] [("]") "["] [(")") "("] [else '()])]
+                          [expr (λ (x) (not (equal? x c)))])
+        (push (ret-pop (reverse (dropf (reverse n) expr))) (reverse (takef (reverse n) expr)))))) lst))
+
 (define (lex s)
-  (cond [(member s (list "(" ")" "{" "}" "[" "]" ":")) s]
+  (cond [(member s (list #\( #\) #\{ #\} #\[ #\] #\:)) s]
         [(member s (map fn-name funs)) (find-eq s car funs)] [else (v s "List")]))
 
-
+#;(define (parsel lst) (foldr (λ (l n)
+  (cond [()]))))
 
 (define (parse str) (map lex (check-parens (string-split-spec str))))
