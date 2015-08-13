@@ -35,10 +35,10 @@
         [q (splt (cdr str) (append n (list (list (car str)) '())))]
         [else (splt (cdr str) (push (ret-pop n) (push (pop n) (car str))))])))
 
-(define (string-split-spec str) (map list->string (foldl (λ (s n) (begin (displayln n)
+(define (string-split-spec str) (map list->string (filter (λ (x) (not (empty? x))) (foldl (λ (s n) (begin (displayln n)
   (cond [(equal? (car n) 'str) (if (equal? s #\") (push (second n) '()) (list 'str (push (ret-pop (pop n)) (push (pop (pop n)) s))))]
         [(equal? s #\") (list 'str n)] [(member s (list #\( #\) #\{ #\} #\[ #\] #\:)) (append n (list (list s)) (list '()))]
-        [(equal? s #\space) (push n '())] [else (push (ret-pop n) (push (pop n) s))]))) '(()) (string->list str))))
+        [(equal? s #\space) (push n '())] [else (push (ret-pop n) (push (pop n) s))]))) '(()) (string->list str)))))
 
 #;(define (check-parens stk) (map rem-plist (cp stk '())))
 (define (cp stk n)
@@ -55,13 +55,13 @@
   (if (or (empty? n) (not (equal? elt ")"))) (push n elt)
       (let* ([c (case elt [("}") "{"] [("]") "["] [(")") "("] [else '()])]
                           [expr (λ (x) (not (equal? x c)))])
-        (push (ret-pop (reverse (dropf (reverse n) expr))) (reverse (takef (reverse n) expr)))))) lst))
+        (push (ret-pop (reverse (dropf (reverse n) expr))) (reverse (takef (reverse n) expr)))))) '() lst))
 
 (define (lex s)
-  (cond [(member s (list #\( #\) #\{ #\} #\[ #\] #\:)) s]
-        [(member s (map fn-name funs)) (find-eq s car funs)] [else (v s "List")]))
+  (cond [(member s (list "(" ")" "{" "}" "[" "]" ":")) s]
+        [(member s (map fn-name funs)) (find-eq s car funs)] [else (v s "Lit")]))
 
 #;(define (parsel lst) (foldr (λ (l n)
   (cond [()]))))
 
-(define (parse str) (map lex (check-parens (string-split-spec str))))
+(define (parse str) (check-parens (map lex (string-split-spec str))))
