@@ -9,8 +9,10 @@
 ; `fn' is the lowest level. always confirmed simplest form.
 ; these functions cannot be partially applied at top-level.
 (struct exp (h t) #:transparent) ; LISP-style s-expression. (lambda . args-list)
+(struct apl (h t) #:transparent)
 (struct v (val type) #:transparent)
 (define (sym? s) (and (v? s) (equal? (v? s) "Sym")))
+(define (ins lf) (if (la? lf) (length (la-ins lf)) (fn-ins lf)))
 
 (define (push stk elt) (append stk (list elt)))
 (define (pop stk) (car (reverse stk)))
@@ -21,6 +23,11 @@
 
 ; ac-expr is the expression that is used on every element of `lst' but preserves the original `lst'.
 (define (find-eq a ac-expr lst) (findf (λ (x) (equal? a (ac-expr x))) lst))
+
+(define (mk-args n) (for/list ([i n]) (list->string (list #\a (integer->char (+ i 48))))))
+(define (argsn e) (displayln e) (- (ins (exp-h e)) (length (exp-t e))))
+(define (exp->la e) (let ([x (mk-args (argsn e))])
+  (la x (exp (exp-h e) (append (exp-t e) x)))))
 
 #;(define (string-split-spec str) (map list->string (filter (λ (x) (not (empty? x))) (splt (string->list str) '(())))))
 (define (splt str n) (let ([q (if (empty? str) #f (member (car str) (list #\( #\) #\{ #\} #\[ #\] #\:)))])
@@ -35,10 +42,10 @@
         [q (splt (cdr str) (append n (list (list (car str)) '())))]
         [else (splt (cdr str) (push (ret-pop n) (push (pop n) (car str))))])))
 
-(define (string-split-spec str) (map list->string (filter (λ (x) (not (empty? x))) (foldl (λ (s n) (begin (displayln n)
+(define (string-split-spec str) (map list->string (filter (λ (x) (not (empty? x))) (foldl (λ (s n)
   (cond [(equal? (car n) 'str) (if (equal? s #\") (push (second n) '()) (list 'str (push (ret-pop (pop n)) (push (pop (pop n)) s))))]
         [(equal? s #\") (list 'str n)] [(member s (list #\( #\) #\{ #\} #\[ #\] #\:)) (append n (list (list s)) (list '()))]
-        [(equal? s #\space) (push n '())] [else (push (ret-pop n) (push (pop n) s))]))) '(()) (string->list str)))))
+        [(equal? s #\space) (push n '())] [else (push (ret-pop n) (push (pop n) s))])) '(()) (string->list str)))))
 
 #;(define (check-parens stk) (map rem-plist (cp stk '())))
 (define (cp stk n)
@@ -59,9 +66,16 @@
 
 (define (lex s)
   (cond [(member s (list "(" ")" "{" "}" "[" "]" ":")) s]
-        [(member s (map fn-name funs)) (find-eq s car funs)] [else (v s "Lit")]))
+        [(member s (map fn-name funs)) (find-eq s fn-name funs)] [else (v s "Lit")]))
 
-#;(define (parsel lst) (foldr (λ (l n)
-  (cond [()]))))
-
-(define (parse str) (check-parens (map lex (string-split-spec str))))
+(define (parsel lst) (reverse (foldr (λ (lt lts n) (begin #;(map displayln (list lt lts))
+  (cond [(fn? lt) (if (equal? (car n) 'just) (second n) (list (exp->la (exp lt (reverse n)))))]
+        [(list? lt) (append n (parsel lt))]
+        [(equal? lt ":") (let ([x (if (list? lts) (car (parsel lts)) lts)])
+          (if (not (= 0 (argsn (exp x n)))) 
+              (begin (printf "mis-matched application: `~a' requires ~a arguments; given ~a.~n" 
+                             (if (la? x) x (fn-name x)) (ins x) (length n)) '())
+              (list 'just (list (apl x (reverse n))))))]
+        [else (push n lt)]))) '() lst (append (list (pop lst)) (ret-pop lst)))))
+          
+(define (parse str) (parsel (check-parens (map lex (string-split-spec str)))))
