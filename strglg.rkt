@@ -25,7 +25,7 @@
 (define (find-eq a ac-expr lst) (findf (λ (x) (equal? a (ac-expr x))) lst))
 
 (define (mk-args n) (for/list ([i n]) (list->string (list #\a (integer->char (+ i 48))))))
-(define (argsn e) (displayln e) (- (ins (exp-h e)) (length (exp-t e))))
+(define (argsn e) (- (ins (exp-h e)) (length (exp-t e))))
 (define (exp->la e) (let ([x (mk-args (argsn e))])
   (la x (exp (exp-h e) (append (exp-t e) x)))))
 
@@ -69,7 +69,8 @@
         [(member s (map fn-name funs)) (find-eq s fn-name funs)] [else (v s "Lit")]))
 
 (define (parsel lst) (reverse (foldr (λ (lt lts n) (begin #;(map displayln (list lt lts))
-  (cond [(fn? lt) (if (equal? (car n) 'just) (second n) (list (exp->la (exp lt (reverse n)))))]
+  (cond [(and (not (empty? n)) (equal? (car n) 'just)) (second n)]
+        [(fn? lt) (list (exp->la (exp lt (reverse n))))]
         [(list? lt) (append n (parsel lt))]
         [(equal? lt ":") (let ([x (if (list? lts) (car (parsel lts)) lts)])
           (if (not (= 0 (argsn (exp x n)))) 
