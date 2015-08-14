@@ -26,8 +26,21 @@
 
 (define (mk-args n) (for/list ([i n]) (list->string (list #\a (integer->char (+ i 48))))))
 (define (argsn e) (- (ins (exp-h e)) (length (exp-t e))))
-(define (exp->la e) (let ([x (mk-args (argsn e))])
-  (la x (exp (exp-h e) (append (exp-t e) x)))))
+#;(define (move-args t x n)
+  (cond [(empty? t) n]
+        [(la? (car t)) (move-args (cdr t) (drop x (ins (car t))) 
+                                  (push n (exp (exp-h (la-cont (car t)))
+                                               (repla))))]
+        [else (move-args (cdr t) (push n (car t)))]))
+(define (exp->la e) (let ([x #;(mk-args (argsn e))
+                             (mk-args (foldl (λ (x y) (if (la? x) (+ (ins x) y) y)) (argsn e) (exp-t e)))])
+  (la x #;(exp (exp-h e) (if (not (empty? (exp-t e))) 
+                           ((car (exp-t e)) x)))
+      (if (or (empty? (exp-t e)) (not (la? (car (exp-t e))))) (exp (exp-h e) x)
+          (exp (if (list? (exp-h e)) (append (exp-h e) (list (car (exp-t e))))
+                   (list (exp-h e) (car (exp-t e)))) x)))
+               
+  #;(la x (exp (exp-h e) (append (exp-t e) x)))))
 
 #;(define (string-split-spec str) (map list->string (filter (λ (x) (not (empty? x))) (splt (string->list str) '(())))))
 (define (splt str n) (let ([q (if (empty? str) #f (member (car str) (list #\( #\) #\{ #\} #\[ #\] #\:)))])
