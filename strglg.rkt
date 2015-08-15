@@ -32,15 +32,21 @@
                                   (push n (exp (exp-h (la-cont (car t)))
                                                (repla))))]
         [else (move-args (cdr t) (push n (car t)))]))
-(define (exp->la e) (let ([x #;(mk-args (argsn e))
+#;(define (exp->la e) (let ([x #;(mk-args (argsn e))
                              (mk-args (foldl (λ (x y) (if (la? x) (+ (ins x) y) y)) (argsn e) (exp-t e)))])
   (la x #;(exp (exp-h e) (if (not (empty? (exp-t e))) 
                            ((car (exp-t e)) x)))
       (if (or (empty? (exp-t e)) (not (la? (car (exp-t e))))) (exp (exp-h e) x)
-          (exp (if (list? (exp-h e)) (append (exp-h e) (list (car (exp-t e))))
+          (exp (if (list? (car (exp-t e))) (append (list (exp-h e)) (car (exp-t e)))
                    (list (exp-h e) (car (exp-t e)))) x)))
                
   #;(la x (exp (exp-h e) (append (exp-t e) x)))))
+
+(define (exp->la e) (let ([x (if (and (= (length (exp-t e)) 1) (la? (car (exp-t e))))
+                                 (exp-h (la-cont (car (exp-t e)))) #f)]
+                          [y (mk-args (foldl (λ (x y) (if (la? x) (+ (ins x) y) y)) (argsn e) (exp-t e)))])
+  (la y (exp (if x (if (list? x) (append (list (exp-h e)) x) (list (exp-h e) (car (exp-t e))))
+                 (exp-h e)) y))))
 
 #;(define (string-split-spec str) (map list->string (filter (λ (x) (not (empty? x))) (splt (string->list str) '(())))))
 (define (splt str n) (let ([q (if (empty? str) #f (member (car str) (list #\( #\) #\{ #\} #\[ #\] #\:)))])
