@@ -19,7 +19,10 @@
 (define (ret-pop stk) (reverse (cdr (reverse stk))))
 (define (strcar str) (car (string->list str)))
 
-(define funs (list (fn "+" 2)))
+(define funs (list (fn "+" 2) (fn "$" -1) (fn "la" 2)))
+(define pfuns '("$" "la" "def" "sig"))
+
+(define test0 "la:(($:a b) (+:a b))")
 
 ; ac-expr is the expression that is used on every element of `lst' but preserves the original `lst'.
 (define (find-eq a ac-expr lst) (findf (λ (x) (equal? a (ac-expr x))) lst))
@@ -85,18 +88,26 @@
 
 (define (lex s)
   (cond [(member s (list "(" ")" "{" "}" "[" "]" ":" "'")) s]
-        [(member s (map fn-name funs)) (find-eq s fn-name funs)] [else (v s "Lit")]))
+        [(member s (map fn-name funs)) (find-eq s fn-name funs)] 
+        [(char-numeric? (strcar s)) (v s "Int")] [(equal? (strcar s) #\") (v s "Str")] 
+        [else s]))
 
+(define (eval-prims e)
+  (case (fn-name (exp-h e))
+    [("$") (list (exp-t e))]
+    [("la") (list (la (car (exp-t e)) (second (exp-t e))))]
+    [else e]))
 (define (parsel lst) (reverse (foldr (λ (lt lts n) (begin #;(map displayln (list lt lts))
   (cond [(equal? lt "'") n] [(and (not (empty? n)) (equal? (car n) 'just)) (second n)]
         [(fn? lt) (list (exp->la (exp lt (reverse n))))]
-        [(list? lt) (let ([x (parsel lt)])
-                      (if (or (equal? lts "'") (apl? x)) (append n (parsel lt)) (list (exp->la (exp (car x) (reverse n))))))]
+        [(list? lt) (let ([x (parsel lt)]) (displayln x)
+                      (if (or (equal? lts "'") (not (fn? (car x)))) (append n x) (list (exp->la (exp (car x) (reverse n))))))]
         [(equal? lt ":") (let ([x (if (list? lts) (car (parsel lts)) lts)])
-          (if (not (= 0 (argsn (exp x n)))) 
+          (if (and (not (= (ins x) -1)) (not (= 0 (argsn (exp x n))))) 
               (begin (printf "mis-matched application: `~a' requires ~a arguments; given ~a.~n" 
                              (if (la? x) x (fn-name x)) (ins x) (length n)) '())
-              (list 'just (list (apl x (reverse n))))))]
+              (list 'just (if (and (fn? x) (member (fn-name x) pfuns)) 
+                              (eval-prims (exp x (reverse n))) (list (exp x (reverse n)))))))]
         [else (push n lt)]))) '() lst (append (list (pop lst)) (ret-pop lst)))))
           
 (define (parse str) (parsel (check-parens (map lex (string-split-spec str)))))
