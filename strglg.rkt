@@ -91,7 +91,7 @@
   (cond [(equal? lt "'") n] [(and (not (empty? n)) (equal? (car n) 'just)) (second n)]
         [(fn? lt) (list (exp->la (exp lt (reverse n))))]
         [(list? lt) (let ([x (parsel lt)])
-                      (if (apl? x) (append n (parsel lt)) (list (exp->la (exp (car x) (reverse n))))))]
+                      (if (or (equal? lts "'") (apl? x)) (append n (parsel lt)) (list (exp->la (exp (car x) (reverse n))))))]
         [(equal? lt ":") (let ([x (if (list? lts) (car (parsel lts)) lts)])
           (if (not (= 0 (argsn (exp x n)))) 
               (begin (printf "mis-matched application: `~a' requires ~a arguments; given ~a.~n" 
