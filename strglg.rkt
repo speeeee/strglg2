@@ -42,11 +42,11 @@
                
   #;(la x (exp (exp-h e) (append (exp-t e) x)))))
 
-(define (exp->la e) (let ([x (if (and (= (length (exp-t e)) 1) (la? (car (exp-t e))))
+(define (exp->la e) (displayln (exp-t e)) (let ([x (if (and (= (length (exp-t e)) 1) (la? (car (exp-t e))))
                                  (exp-h (la-cont (car (exp-t e)))) #f)]
                           [y (mk-args (foldl (λ (x y) (if (la? x) (+ (ins x) y) y)) (argsn e) (exp-t e)))])
   (la y (exp (if x (if (list? x) (append (list (exp-h e)) x) (list (exp-h e) (car (exp-t e))))
-                 (exp-h e)) y))))
+                 (exp-h e)) (if x y (append (exp-t e) y)))))) ; make sure to remember adding current args to varargs.
 
 #;(define (string-split-spec str) (map list->string (filter (λ (x) (not (empty? x))) (splt (string->list str) '(())))))
 (define (splt str n) (let ([q (if (empty? str) #f (member (car str) (list #\( #\) #\{ #\} #\[ #\] #\:)))])
@@ -63,7 +63,7 @@
 
 (define (string-split-spec str) (map list->string (filter (λ (x) (not (empty? x))) (foldl (λ (s n)
   (cond [(equal? (car n) 'str) (if (equal? s #\") (push (second n) '()) (list 'str (push (ret-pop (pop n)) (push (pop (pop n)) s))))]
-        [(equal? s #\") (list 'str n)] [(member s (list #\( #\) #\{ #\} #\[ #\] #\:)) (append n (list (list s)) (list '()))]
+        [(equal? s #\") (list 'str n)] [(member s (list #\( #\) #\{ #\} #\[ #\] #\: #\')) (append n (list (list s)) (list '()))]
         [(equal? s #\space) (push n '())] [else (push (ret-pop n) (push (pop n) s))])) '(()) (string->list str)))))
 
 #;(define (check-parens stk) (map rem-plist (cp stk '())))
@@ -84,13 +84,14 @@
         (push (ret-pop (reverse (dropf (reverse n) expr))) (reverse (takef (reverse n) expr)))))) '() lst))
 
 (define (lex s)
-  (cond [(member s (list "(" ")" "{" "}" "[" "]" ":")) s]
+  (cond [(member s (list "(" ")" "{" "}" "[" "]" ":" "'")) s]
         [(member s (map fn-name funs)) (find-eq s fn-name funs)] [else (v s "Lit")]))
 
 (define (parsel lst) (reverse (foldr (λ (lt lts n) (begin #;(map displayln (list lt lts))
-  (cond [(and (not (empty? n)) (equal? (car n) 'just)) (second n)]
+  (cond [(equal? lt "'") n] [(and (not (empty? n)) (equal? (car n) 'just)) (second n)]
         [(fn? lt) (list (exp->la (exp lt (reverse n))))]
-        [(list? lt) (append n (parsel lt))]
+        [(list? lt) (let ([x (parsel lt)])
+                      (if (apl? x) (append n (parsel lt)) (list (exp->la (exp (car x) (reverse n))))))]
         [(equal? lt ":") (let ([x (if (list? lts) (car (parsel lts)) lts)])
           (if (not (= 0 (argsn (exp x n)))) 
               (begin (printf "mis-matched application: `~a' requires ~a arguments; given ~a.~n" 
