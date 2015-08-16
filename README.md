@@ -17,7 +17,7 @@ To a lesser extent, LISP is also an influence.
 
 # Documentation
 
-There is a simple set of documentation in DOCS.md
+There is a simple set of documentation in DOCS.md.
 
 # Status
 
