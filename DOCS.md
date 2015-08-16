@@ -3,7 +3,7 @@ Docs
 
 This is the documentation for strglg.  It will cover all of the available features of it while also giving a small tutorial.
 
-# Functions in strglg
+## Functions in strglg
 
 The syntax of strglg is fairly simple to understand.  The basic syntax can be expressed with the usual "Hello, world." program.  Here is the that program in strglg:
 
@@ -22,7 +22,7 @@ Like the previous example, `:` applies `+` to the list `1 2`.  This is something
 
 These are functions at the most basic level in strglg.  Any function application or literal in strglg is considered an expression.  In the next section, applying functions to the results of other functions will be explained.
 
-# Nesting expressions and right-associativity
+## Nesting expressions and right-associativity
 
 The two examples in the previous section are combined here.  Two integers, 1 and 2, will be added together, and the result will be printed using `prn`:
 
@@ -48,7 +48,7 @@ Before beginning, the parentheses around the first expression are necessary, as 
 
 First, `-:3 4` and `-:1 2` are calculated.  These two differences then act as the arguments for `*`.  This is how nesting expressions works in strglg.
 
-# Lambdas
+## Lambdas
 
 Lambdas are essentially synonymous with the concept of "anonymous function".  They are functions in that they take an amount of arguments and return something, but they have no name.  This also means that functions (at least in strglg) are just named lambdas (this is also true in languages like LISP).
 
@@ -74,7 +74,7 @@ Using `:`, a lambda can be applied to arguments just like any other function:
 
 (Note the necessity of parentheses around the lambda.  Without them, the first expression read would be `a:2`, which is not valid.)
 
-# Functions
+## Functions
 
 Functions, as mentioned before, are just named lambdas.  They are fairly easy to define:
 
@@ -92,7 +92,7 @@ inc:2
 
 This is the same as the example in the previous section.
 
-# Function composition
+## Function composition
 
 Now that lambdas have been explained, it is time to get into the main part of the language.
 
@@ -164,7 +164,7 @@ Here is the following result of composition:
 
 The result would require three arguments to work: two for `-`, and a third one to add to the difference.  Essentially, the first function becomes the first argument for the second function.
 
-# Partial application and currying
+## Partial application and currying
 
 This is where the usefulness of function composition can appear.  Every single lambda written so far was not really necessary to write.  Instead, functions can be composed to create partially implied functions.  Take the increment function from earlier:
 
@@ -206,7 +206,7 @@ With this definition, the expression, `+ 1` becomes entirely valid.  What is ret
 
 Before ending this section, it is important to note that partial application is not allowed when using `:`.  That is, the expression, `+:1`, will return an error.  Unless the amount of arguments is undetermined, the arguments must equal the amount needed when using `:`.
 
-# Stopping unnecessary composition
+## Stopping unnecessary composition
 
 Sometimes, it can be undesirable for composition to automatically happen.  Take this example:
 
@@ -216,13 +216,52 @@ map:(+ 1) $:1 2 3
 
 `map` is a function that takes two arguments.  The first argument must be a lambda that takes one argument while the second is any list.  The lambda is applied to every element in the list, returning a new list containing the results.  For example, the resulting list here would be `2 3 4`.  However, there is a problem.  As it is, the lambda, `+ 1` is actually composed with `$:1 2 3`, making `+ 1 $:1 2 3`.  The compiler will return an error saying that only one argument was passed.
 
-What is wanted instead, is a lambda that ignores forced composition.  This is what the comma, `'`, is for.  Here is the correct expression:
+What is wanted instead, is a lambda that ignores forced composition.  This is what the apostrophe, `'`, is for.  Here is the correct expression:
 
 ```
 map:'(+ 1) $:1 2 3
 ```
 
-Instead of being composed, the lambda stays as is.  Here, `map` is correctly applied to the correct arguments.  Essentially, `'` takes whatever parenthesized item associated with it and blocks it from being composed with anything.
+Instead of being composed, the lambda stays as is.  Here, `map` is correctly applied to the correct arguments.  Essentially, `'` takes whatever lambda associated with it and blocks it from being composed with anything.
+
+## Recursion and signatures
+
+Side-topics
+====
+
+This section has documentation describes some other topics in strglg.
+
+## Lambda producing functions
+
+These functions use their arguments to produce a lambda 
+
+### Forks
+
+**NOTE:** forks have not been added yet.
+
+The symbol for the fork function is `#`.
+
+```
+sig: # $:?
+```
+
+`#` takes any amount of lambdas as arguments and returns a new lambda returning a list of the applications of each lambda on different arguments.  Consider the example, `list (x - y) (x + y)`.  This is easy to define in strglg:
+
+```
+def:-+ (-:x y) +:x y
+```
+
+This example, however, can be written in a different way using forks:
+
+```
+def:-+ (#:'+ -):x y
+```
+
+(this definition can also be written point-free: `def:-+ #:'+ -`
+
+Here, `#` takes its arguments and produces the lambda: `([x y] -> list (-:x y) (+:x y))`.  What happens is that a lambda is produced returning a list of each function listed applied to the same arguments.  This helps creating branches that require the same values without needing to define a local variable.
+
+Lastly, it should be noted that `#` requires that all arguments have the same amount of input values.
 
 # Status
 
