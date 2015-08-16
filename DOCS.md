@@ -36,7 +36,7 @@ What happens is that `+` is applied to the list, `1 2`, and then `prn` is applie
 prn:+:1 2
 ```
 
-The example can be written like this.  This brings up an important part of how strglg works.  strglg is *right associative*.  This means that strglg reads everything from right-to-left.  This means that the expression, `+:1 2`, is read first, and then `prn` is applied to that.  This may seem odd at first, but it often times, parentheses can be omitted.
+The example can be written like this.  This brings up an important part of how strglg works.  strglg is *right associative*.  This means that strglg reads everything from right-to-left.  This means that the expression, `+:1 2`, is read first, and then `prn` is applied to that.  This may seem odd at first, but often times, parentheses can be omitted.
 
 A more complex example to rewrite in strglg would be something like `(1 - 2) * (3 - 4)`.  This can be written as follows:
 
