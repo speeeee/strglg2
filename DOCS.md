@@ -60,7 +60,7 @@ la:($:a) +:1 a
 
 Their are multiple new concepts in this expression.  First, `la` is its own function that takes two arguments: a list of parameters and the body of the lambda.  The parameters are a set of arguments that the lambda requires.  The body is any expression that makes use of these arguments.  
 
-Notice that the argument is used in the `+` expression.  Anything that is not a literal (that is, anything that isn't a string, char, number, function, or lambda), is read as a symbol.  Symbols don't have a set type, and because of this, are accepted by all functions.  
+Notice that the argument is used in the `+` expression.  Anything that is not a literal (that is, anything that isn't a string, char, number, function, or lambda), is read as a symbol.  Symbols don't have a set type, and because of this, they are accepted by all functions.  
 
 Lastly is the `$` function.  This function creates a list out of the rest of the arguments (think `list` in LISP).  Like its LISP counterpart, the amount of arguments that `$` takes is not set.  Instead, it takes all arguments given to it.
 
@@ -103,13 +103,13 @@ There are two major parts of concatenative languages that separate them from oth
 strglg, while not strictly concatenative itself, borrows some of these ideas.  Function composition in programming is very similar to that of in mathematics.  Consider the following definition that works just like addition, but increments the first argument:
 
 ```
-def:(+inc la:($ a b) +:(inc:a) b)
+def:(+inc la:($:a b) +:(inc:a) b)
 ```
 
 However, there is another way this definition could be written:
 
 ```
-def:(+inc la:($ a b) (+ inc):a b)
+def:(+inc la:($:a b) (+ inc):a b)
 ```
 
 This is the same as the previous definition, only that here, a new function was composed of `inc` and `+`.  To better understand composition, take these two expressions:
