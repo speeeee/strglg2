@@ -20,7 +20,7 @@
 (define (strcar str) (car (string->list str)))
 
 ; `funs' is a mutable variable.
-(define funs (list (fn "+" 2) (fn "$" -1) (fn "la" 2)
+(define funs (list (fn "+" 2) (fn "-" 2) (fn "*" 2) (fn "$" -1) (fn "la" 2)
                    (fn "def" 2)))
 (define pfuns '("$" "la" "def" "sig"))
 
