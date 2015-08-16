@@ -206,6 +206,24 @@ With this definition, the expression, `+ 1` becomes entirely valid.  What is ret
 
 Before ending this section, it is important to note that partial application is not allowed when using `:`.  That is, the expression, `+:1`, will return an error.  Unless the amount of arguments is undetermined, the arguments must equal the amount needed when using `:`.
 
+# Stopping unnecessary composition
+
+Sometimes, it can be undesirable for composition to automatically happen.  Take this example:
+
+```
+map:(+ 1) $:1 2 3
+```
+
+`map` is a function that takes two arguments.  The first argument must be a lambda that takes one argument while the second is any list.  The lambda is applied to every element in the list, returning a new list containing the results.  For example, the resulting list here would be `2 3 4`.  However, there is a problem.  As it is, the lambda, `+ 1` is actually composed with `$:1 2 3`, making `+ 1 $:1 2 3`.  The compiler will return an error saying that only one argument was passed.
+
+What is wanted instead, is a lambda that ignores forced composition.  This is what the comma, `'`, is for.  Here is the correct expression:
+
+```
+map:'(+ 1) $:1 2 3
+```
+
+Instead of being composed, the lambda stays as is.  Here, `map` is correctly applied to the correct arguments.  Essentially, `'` takes whatever parenthesized item associated with it and blocks it from being composed with anything.
+
 # Status
 
 This documentation is not finished.  It is also not necessarily well written, and it may be better to look up alternate explanations for some concepts.
