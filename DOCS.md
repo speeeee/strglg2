@@ -12,7 +12,7 @@ prn:"Hello, world.\n"
 ```
 **NOTE:** `prn` does not exist yet.
 
-The above example simply takes the string, `"Hello, world.\n"`, and applies `prn` to it.  `prn` takes a string and prints it.  It may not seem so at first, but the `:` does actually have significance.  `:` is an infix operation that applies the left argument to the right argument.  The left argument here is `prn`, and the right is `"Hello, world."`.  Here is an example of addition:
+The above example simply takes the string, `"Hello, world.\n"`, and applies `prn` to it.  `prn` takes a string and prints it.  It may not seem so at first, but the `:` does actually have significance.  `:` is an infix operator that applies the left argument to the right argument.  The left argument here is `prn`, and the right is `"Hello, world."`.  Here is an example of addition:
 
 ```
 +:1 2
@@ -48,6 +48,164 @@ Before beginning, the parentheses around the first expression are necessary, as 
 
 First, `-:3 4` and `-:1 2` are calculated.  These two differences then act as the arguments for `*`.  This is how nesting expressions works in strglg.
 
-# Lambdas and functions
+# Lambdas
 
-# Function composition and partial application
+Lambdas are essentially synonymous with the concept of "anonymous function".  They are functions in that they take an amount of arguments and return something, but they have no name.  This also means that functions (at least in strglg) are just named lambdas (this is also true in languages like LISP).
+
+Here is a lambda that takes one argument and returns the argument incremented by 1:
+
+```
+la:($:a) +:1 a
+```
+
+Their are multiple new concepts in this expression.  First, `la` is its own function that takes two arguments: a list of parameters and the body of the lambda.  The parameters are a set of arguments that the lambda requires.  The body is any expression that makes use of these arguments.  
+
+Notice that the argument is used in the `+` expression.  Anything that is not a literal (that is, anything that isn't a string, char, number, function, or lambda), is read as a symbol.  Symbols don't have a set type, and because of this, are accepted by all functions.  
+
+Lastly is the `$` function.  This function creates a list out of the rest of the arguments (think `list` in LISP).  Like its LISP counterpart, the amount of arguments that `$` takes is not set.  Instead, it takes all arguments given to it.
+
+What is returned is the lambda, `([a] -> +:1 a)`, taking one argument, and returning that argument + 1.  Note the fact that it *return*ed a function.  Like any other functional language, strglg's functions and lambdas are first-class.  This means that they can be used as if they were literals; they can be used as arguments to other functions and be returned.
+
+Using `:`, a lambda can be applied to arguments just like any other function:
+
+```
+(la:($:a) +:1 a):2
+```
+
+(Note the necessity of parentheses around the lambda.  Without them, the first expression read would be `a:2`, which is not valid.)
+
+# Functions
+
+Functions, as mentioned before, are just named lambdas.  They are fairly easy to define:
+
+```
+def:inc la:($:a) +:1 a
+```
+
+Here, the example shown in the previous section is used as the subject for a new function.    `def` is a function that takes 2 arguments: the name and a lambda that represents the body.  This is also an example of lambdas being first-class, as here, one is being used as an argument for `def`.
+
+After the definition, the new function works as it should:
+
+```
+inc:2
+```
+
+This is the same as the example in the previous section.
+
+# Function composition
+
+Now that lambdas have been explained, it is time to get into the main part of the language.
+
+There are two major parts of concatenative languages that separate them from others:
+* Everything is a function.  Even literals are just functions that take no arguments and return new values.
+* Concatenative languages work off of function composition.
+
+strglg, while not strictly concatenative itself, borrows some of these ideas.  Function composition in programming is very similar to that of in mathematics.  Consider the following definition that works just like addition, but increments the first argument:
+
+```
+def:(+inc la:($ a b) +:(inc:a) b)
+```
+
+However, there is another way this definition could be written:
+
+```
+def:(+inc la:($ a b) (+ inc):a b)
+```
+
+This is the same as the previous definition, only that here, a new function was composed of `inc` and `+`.  To better understand composition, take these two expressions:
+
+```
+f(g(x))
+(f∘g)(x)
+```
+
+These expressions are the exact same.  It should be noticed that in the second statement, the arguments are isolated.  The difference between the two expressions is that the first one is a function applied to another function applied to the argument, `x`, while the second is simply a function (which happens to be composed of two other functions) applied to the argument, `x`.  This is something very important (especially for the next section).
+
+The expression, `(+ inc):a b`, works the same way.  For now, `+ inc` will be the only focus.  First thing to explain the syntax of function composition in strglg.  Earlier, it was discussed that `:` was an infix operator for function application.  There is one other "infix operator" that exists in strglg, and this operator is for function composition.  However, unlike in math where this operator is `∘`, there is no real operator in strglg.  Instead, the lack of any operator (whitespace, essentially) represents composition.
+
+Using this syntax, `+ inc` is the composition of `+` and `inc`, since there was no infix operator.  Before beginning, recall that everything is right-associative, so function composition happens in reverse order, like it does in math.  Here are the lambda representation of both functions:
+
+```
+([a0] -> inc:a0)
+([a0 a1] -> +:a0 a1)
+```
+**NOTE:** any non-user created lambda names its arguments from a0..a*N*.
+
+This clearly shows the amount of arguments taken by both functions.  Note that both lambdas have `a0` as an argument, and that `a0` is the only argument needed for `inc`.  Because of this, `inc` can be "absorbed" into the second lambda when composed:
+
+```
+([a0 a1] -> +:(inc:a0) a1)
+```
+
+Above is the resulting composed function.  Notice that it is the exact same as the regular definition of `+inc`.
+
+The other thing that needs to be discussed is how literals are parsed.  Recall the expression, `+:1 2`.  With what is known now, it should be noticed that the list `1 2` is actually function composition.  For this example, the expression will be changed to `+ 1 2`; here are the lambdas for each value:
+
+```
+([] -> 2)
+([] -> 1)
+([a0 a1] -> +:a0 a1)
+```
+
+Like other concatenative languages, literals are functions that take no arguments and return the literal.  When composed, it just works as if one is appended to the other: `([] -> 1 2)`.  This is then composed with the final lambda, which is `([] -> +:1 2)`.  Something to note is that since the `:` was removed, instead of returning the result, the fully composed lambda is returned.
+
+Finally, consider the composition `+ -`:
+
+```
+([a0 a1] -> -:a0 a1)
+([a0 a1] -> +:a0 a1)
+```
+
+Here is the following result of composition:
+
+```
+([a0 a1 a2] -> +:(-:a0 a1) a2)
+```
+
+The result would require three arguments to work: two for `-`, and a third one to add to the difference.  Essentially, the first function becomes the first argument for the second function.
+
+# Partial application and currying
+
+This is where the usefulness of function composition can appear.  Every single lambda written so far was not really necessary to write.  Instead, functions can be composed to create partially implied functions.  Take the increment function from earlier:
+
+```
+la:($:a) +:1 a
+```
+
+The same definition can simply be rewritten as:
+
+```
++ 1
+```
+
+As talked about in the last section, what is done here is function composition.  The result of the lambda is as follows:
+
+```
+([a0] -> +:1 a0)
+```
+
+This represents the same lambda as defined earlier.  However, using composition, there was no need to actually mention the names of the arguments.  This is essentially the idea of point-free programming.  That is, arguments are not explicitly mentioned, rather they are implicit.
+
+The new definition can easily be applied like anything else:
+
+```
+(+ 1):2
+```
+
+In this case, the point-free definition of increment is arguably more readable than the regular lambda based definition.  Of course, point-free notation is not always the best and most readable solution to a problem, and in that case, a lambda should probably be used instead.
+
+Another way to see partial application is through currying.  Currying is a process that transforms any multi-argument function into a single-argument function that returns a lambda for the next argument, and if there are more argumnets, then that lambda returns another lambda, and so on depending on how many arguments the original function has.
+
+Consider the function, `+`.  Here is the curried version of `+`:
+
+```
+la:($:a) la:($:b) +:a b
+```
+
+With this definition, the expression, `+ 1` becomes entirely valid.  What is returned is the lambda, `la:($:b) +:1 b`.  Because of this, partial application is entirely possible.
+
+Before ending this section, it is important to note that partial application is not allowed when using `:`.  That is, the expression, `+:1`, will return an error.  Unless the amount of arguments is undetermined, the arguments must equal the amount needed when using `:`.
+
+# Status
+
+This documentation is not finished.  It is also not necessarily well written, and it may be better to look up alternate explanations for some concepts.
