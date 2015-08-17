@@ -11,7 +11,7 @@ The strglg compiler is built in Racket, and also compiles to Racket.  **I might 
 
 # What influenced strglg?
 
-As mentioned before, strglg is influenced by point-free and concatenative languages.  The syntax somewhat resembles FP.  Factor, and other concatenative languages, are influences for how function composition works in strglg.  Similarly, Haskell was also an influence because of how its own system of composition and point-free programming work.
+As mentioned before, strglg is influenced by point-free and concatenative languages.  The syntax somewhat resembles FP.  Factor, and other concatenative languages, are influences for how function composition works in strglg.  Similarly, Haskell was also an influence because of how its own system of composition, currying, and point-free programming work.
 
 To a lesser extent, LISP is also an influence.
 
