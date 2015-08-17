@@ -96,34 +96,15 @@ This is the same as the example in the previous section.
 
 Now that lambdas have been explained, it is time to get into the main part of the language.
 
-There are two major parts of concatenative languages that separate them from others:
-* Everything is a function.  Even literals are just functions that take no arguments and return new values.
-* Concatenative languages work off of function composition.
+There is one major concept that strglg borrows from concatenative languages.  This concept is that function composition is the default process.  That is, there is no operator or function that is used to denote function composition, rather it is done by default.  This is in contrast to languages that apply functions by default.
 
-strglg, while not strictly concatenative itself, borrows some of these ideas.  Function composition in programming is very similar to that of in mathematics.  Consider the following definition that works just like addition, but increments the first argument:
+Recall the operator `:`, and how it was explained that it was an infix operator used for function application.  This section explains this, as the lack of an operator between two items denotes function composition.  Consider this expression that takes two arguments, adds 1 to the first argument, and then finds the sum between the first and second argument:
 
 ```
-def:(+inc la:($:a b) +:(inc:a) b)
+(+ inc):1 2
 ```
 
-However, there is another way this definition could be written:
-
-```
-def:(+inc la:($:a b) (+ inc):a b)
-```
-
-This is the same as the previous definition, only that here, a new function was composed of `inc` and `+`.  To better understand composition, take these two expressions:
-
-```
-f(g(x))
-(f∘g)(x)
-```
-
-These expressions are the exact same.  It should be noticed that in the second statement, the arguments are isolated.  The difference between the two expressions is that the first one is a function applied to another function applied to the argument, `x`, while the second is simply a function (which happens to be composed of two other functions) applied to the argument, `x`.  This is something very important (especially for the next section).
-
-The expression, `(+ inc):a b`, works the same way.  For now, `+ inc` will be the only focus.  First thing to explain the syntax of function composition in strglg.  Earlier, it was discussed that `:` was an infix operator for function application.  There is one other "infix operator" that exists in strglg, and this operator is for function composition.  However, unlike in math where this operator is `∘`, there is no real operator in strglg.  Instead, the lack of any operator (whitespace, essentially) represents composition.
-
-Using this syntax, `+ inc` is the composition of `+` and `inc`, since there was no infix operator.  Before beginning, recall that everything is right-associative, so function composition happens in reverse order, like it does in math.  Here are the lambda representation of both functions:
+Where function composition is most seeable is in the left argument of `:`; `+ inc`.  This can be better explained by expanding both functions into lambdas:
 
 ```
 ([a0] -> inc:a0)
@@ -131,23 +112,15 @@ Using this syntax, `+ inc` is the composition of `+` and `inc`, since there was 
 ```
 **NOTE:** any non-user created lambda names its arguments from a0..a*N*.
 
-This clearly shows the amount of arguments taken by both functions.  Note that both lambdas have `a0` as an argument, and that `a0` is the only argument needed for `inc`.  Because of this, `inc` can be "absorbed" into the second lambda when composed:
+When two functions are being composed, it means that whatever the first function returns is pushed into the second function.  From this, the composition of the two functions come out to be this lambda:
 
 ```
 ([a0 a1] -> +:(inc:a0) a1)
 ```
 
-Above is the resulting composed function.  Notice that it is the exact same as the regular definition of `+inc`.
+The resulting lambda is applied to the list, `1 2`, producing the expression `+:(inc:1) 2`.  This result is equivalent to the applicative way of the expression.  However, the composed way is arguably more clear, and more importantly, the target arguments are isolated.  Instead of the expression being a function applied to the result of another function application and another argument, it is instead a function (of which is actually composed of two other functions) applied to 2 arguments.  This distinction is important (especially in the next section).
 
-The other thing that needs to be discussed is how literals are parsed.  Recall the expression, `+:1 2`.  With what is known now, it should be noticed that the list `1 2` is actually function composition.  For this example, the expression will be changed to `+ 1 2`; here are the lambdas for each value:
-
-```
-([] -> 2)
-([] -> 1)
-([a0 a1] -> +:a0 a1)
-```
-
-Like other concatenative languages, literals are functions that take no arguments and return the literal.  When composed, it just works as if one is appended to the other: `([] -> 1 2)`.  This is then composed with the final lambda, which is `([] -> +:1 2)`.  Something to note is that since the `:` was removed, instead of returning the result, the fully composed lambda is returned.
+Like other concatenative languages, literals are functions that take no arguments and return the literal.  When composed, it just works as if one is appended to the other; `([] -> 1 2)` is equivalent to `1 2`.  When composed with a function that actually takes arguments like `+`, the literal producing functions are simply used as arguments for that function: `([] -> + 1 2)`.  
 
 Finally, consider the composition `+ -`:
 
@@ -265,4 +238,4 @@ Lastly, it should be noted that `#` requires that all arguments have the same am
 
 # Status
 
-This documentation is not finished.  It is also not necessarily well written, and it may be better to look up alternate explanations for some concepts.
+This documentation is not finished.  It is also not necessarily well written, and it may be better to look up alternate explanations for some concepts (especially for function composition and currying; there are plenty of alternate resources that explain them better).  
