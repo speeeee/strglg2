@@ -21,4 +21,4 @@ There is a simple set of documentation in DOCS.md.
 
 # Status
 
-This is just a small project I'm working on.  There aren't any plans to make this into much more than a for-fun project.
+This is just a small project I'm working on.  There aren't any plans to make this into much more than a for-fun project.  The language is just esoteric.
